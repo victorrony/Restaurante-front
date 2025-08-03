@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
                         size="small"
                         onClick={() => {
                            setEmail("admin@restaurante.com");
-                           setPassword("admin123");
+                           setPassword("123456");
                         }}
                      >
                         👨‍💼 Admin
@@ -117,8 +117,8 @@ const LoginPage: React.FC = () => {
                         variant="outlined"
                         size="small"
                         onClick={() => {
-                           setEmail("recepcao@restaurante.com");
-                           setPassword("recepcao123");
+                           setEmail("recepcionista@restaurante.com");
+                           setPassword("123456");
                         }}
                      >
                         🧑‍💼 Recepcionista
@@ -127,8 +127,8 @@ const LoginPage: React.FC = () => {
                         variant="outlined"
                         size="small"
                         onClick={() => {
-                           setEmail("cozinha@restaurante.com");
-                           setPassword("cozinha123");
+                           setEmail("cozinheira@restaurante.com");
+                           setPassword("123456");
                         }}
                      >
                         👨‍🍳 Cozinheira
