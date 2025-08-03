@@ -3,81 +3,83 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #f97316;
-  --secondary-color: #64748b;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
+   --primary-color: #f97316;
+   --secondary-color: #64748b;
+   --success-color: #10b981;
+   --warning-color: #f59e0b;
+   --error-color: #ef4444;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
+   margin: 0;
+   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+      "Droid Sans", "Helvetica Neue", sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+   background-color: #f8fafc;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+   background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+   background: #888;
+   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+   background: #555;
 }
 
 /* Loading animations */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+   0% {
+      transform: rotate(0deg);
+   }
+   100% {
+      transform: rotate(360deg);
+   }
 }
 
 .spinner {
-  animation: spin 1s linear infinite;
+   animation: spin 1s linear infinite;
 }
 
 /* Custom components */
 .card {
-  @apply bg-white rounded-lg shadow-md p-6;
+   @apply bg-white rounded-lg shadow-md p-6;
 }
 
 .btn-primary {
-  @apply bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors;
+   @apply bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors;
 }
 
 .btn-secondary {
-  @apply bg-secondary-500 text-white px-4 py-2 rounded-md hover:bg-secondary-600 transition-colors;
+   @apply bg-secondary-500 text-white px-4 py-2 rounded-md hover:bg-secondary-600 transition-colors;
 }
 
 .btn-success {
-  @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors;
+   @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors;
 }
 
 .btn-warning {
-  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors;
+   @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors;
 }
 
 .btn-danger {
-  @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors;
+   @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors;
 }
 
 .input-field {
-  @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+   @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
 }
