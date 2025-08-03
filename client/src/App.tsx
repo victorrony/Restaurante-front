@@ -15,7 +15,7 @@ import InventoryPage from "./pages/Inventory/InventoryPage";
 import ReportsPage from "./pages/Reports/ReportsPage";
 import UsersPage from "./pages/Users/UsersPage";
 import FeedbackPage from "./pages/Feedback/FeedbackPage";
-import SettingsPage from "./pages/Settings/SettingsPage";
+// import SettingsPage from "./pages/Settings/SettingsPage";
 
 // Types
 import { RootState } from "./store/store";
@@ -50,7 +50,7 @@ const App: React.FC = () => {
             )}
 
             <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            {/* <Route path="/settings" element={<SettingsPage />} /> */}
 
             {/* Redirect para dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

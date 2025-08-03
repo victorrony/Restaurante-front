@@ -24,6 +24,10 @@ import { socketAuth } from "./middleware/socketAuth";
 dotenv.config();
 
 const app = express();
+
+// Trust proxy para funcionar corretamente com reverse proxies
+app.set('trust proxy', 1);
+
 const server = createServer(app);
 const io = new Server(server, {
    cors: {
@@ -70,12 +74,33 @@ app.get("/api/health", (req, res) => {
    });
 });
 
+// Root route
+app.get("/", (req: express.Request, res: express.Response) => {
+   res.json({
+      message: "🍽️ Sistema de Gestão de Restaurante - API",
+      version: "1.0.0",
+      status: "Servidor funcionando",
+      endpoints: {
+         auth: "/api/auth",
+         users: "/api/users",
+         menu: "/api/menu",
+         orders: "/api/orders",
+         tables: "/api/tables",
+         reservations: "/api/reservations",
+         inventory: "/api/inventory",
+         reports: "/api/reports",
+         feedback: "/api/feedback",
+         health: "/api/health",
+      },
+      documentation: "Acesse http://localhost:3000 para o frontend",
+   });
+});
+
 // Socket.IO
 io.use(socketAuth);
 
 io.on("connection", (socket) => {
    console.log("Cliente conectado:", socket.id);
-
    socket.on("join-room", (room) => {
       socket.join(room);
       console.log(`Cliente ${socket.id} entrou na sala ${room}`);

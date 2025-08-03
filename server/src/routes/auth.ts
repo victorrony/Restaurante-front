@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import prisma from "../lib/prisma";
 
+import { Request, Response } from "express";
+
 const router = express.Router();
 
 // Validações
@@ -22,7 +24,7 @@ const registerValidation = [
 // @route   POST /api/auth/login
 // @desc    Login de usuário
 // @access  Public
-router.post("/login", loginValidation, async (req, res) => {
+router.post("/login", loginValidation, async (req: Request, res: Response) => {
    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -65,8 +67,7 @@ router.post("/login", loginValidation, async (req, res) => {
          role: user.role,
       };
 
-      const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: process.env.JWT_EXPIRE || "7d" });
-
+      const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: 60 * 60 * 24 * 7 });
       res.json({
          token,
          user: {
@@ -85,7 +86,7 @@ router.post("/login", loginValidation, async (req, res) => {
 // @route   POST /api/auth/register
 // @desc    Registro de usuário (apenas ADMIN)
 // @access  Private
-router.post("/register", registerValidation, async (req, res) => {
+router.post("/register", registerValidation, async (req: Request, res: Response) => {
    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
