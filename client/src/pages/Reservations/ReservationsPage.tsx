@@ -15,7 +15,7 @@ import {
    Paper,
    Avatar,
 } from "@mui/material";
-import { Add, Edit, Delete, Phone, Email, Event, People, AccessTime } from "@mui/icons-material";
+import { Add, Edit, Delete, Phone, Event, People, AccessTime } from "@mui/icons-material";
 
 const ReservationsPage: React.FC = () => {
    // Mock data para demonstração

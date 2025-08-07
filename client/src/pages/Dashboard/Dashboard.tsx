@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Grid, Card, CardContent, Typography, Paper } from "@mui/material";
-import { Restaurant, ShoppingCart, TableBar, TrendingUp, People, AttachMoney } from "@mui/icons-material";
+import { ShoppingCart, TableBar, People, AttachMoney } from "@mui/icons-material";
 
 const Dashboard: React.FC = () => {
    const stats = [

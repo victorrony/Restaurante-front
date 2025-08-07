@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
    Box,
    Grid,
@@ -21,15 +21,13 @@ import {
    Select,
    MenuItem,
    Paper,
-   Divider,
-   Badge,
+   Divider,   
 } from "@mui/material";
-import { Add, Edit, Kitchen, CheckCircle, Timer, Restaurant, TableBar } from "@mui/icons-material";
-import { useSelector, useDispatch } from "react-redux";
+import { Add, Kitchen, CheckCircle, Restaurant, TableBar } from "@mui/icons-material";
+import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 
 const OrdersPage: React.FC = () => {
-   const [selectedOrder, setSelectedOrder] = useState<any>(null);
    const [statusFilter, setStatusFilter] = useState("ALL");
    const [newOrderDialog, setNewOrderDialog] = useState(false);
 
