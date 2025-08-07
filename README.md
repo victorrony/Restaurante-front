@@ -263,7 +263,7 @@ npm test                # Executa testes
 Para suporte e dúvidas:
 
 -  Abra uma issue no GitHub
--  Entre em contato: victor.rony@email.com
+-  Entre em contato: victorrony89@gmail.com
 
 ## 📄 Licença
 
