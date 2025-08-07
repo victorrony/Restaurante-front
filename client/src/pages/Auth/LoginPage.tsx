@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-   Box,   
-   TextField,
-   Button,
-   Typography,
-   Alert,
-   CircularProgress,
-   Container,
-   Paper,
-} from "@mui/material";
+import { Box, TextField, Button, Typography, Alert, CircularProgress, Container, Paper } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { login } from "../../store/slices/authSlice";
@@ -106,7 +97,7 @@ const LoginPage: React.FC = () => {
                         size="small"
                         onClick={() => {
                            setEmail("admin@restaurante.com");
-                           setPassword("123456");
+                           setPassword("admin123");
                         }}
                      >
                         👨‍💼 Admin
@@ -116,7 +107,7 @@ const LoginPage: React.FC = () => {
                         size="small"
                         onClick={() => {
                            setEmail("recepcionista@restaurante.com");
-                           setPassword("123456");
+                           setPassword("recepcao123");
                         }}
                      >
                         🧑‍💼 Recepcionista
@@ -126,7 +117,7 @@ const LoginPage: React.FC = () => {
                         size="small"
                         onClick={() => {
                            setEmail("cozinheira@restaurante.com");
-                           setPassword("123456");
+                           setPassword("cozinha123");
                         }}
                      >
                         👨‍🍳 Cozinheira
