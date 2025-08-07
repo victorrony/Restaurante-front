@@ -19,7 +19,7 @@ import {
    TableRow,
    Chip,
 } from "@mui/material";
-import { Assessment, TrendingUp, Restaurant, People, AttachMoney, DateRange } from "@mui/icons-material";
+import { Assessment, TrendingUp, Restaurant, People, AttachMoney } from "@mui/icons-material";
 
 const ReportsPage: React.FC = () => {
    const [reportPeriod, setReportPeriod] = useState("today");
