@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 // Components
 import Layout from "./components/Layout/Layout";
@@ -17,10 +17,19 @@ import FeedbackPage from "./pages/Feedback/FeedbackPage";
 // import SettingsPage from "./pages/Settings/SettingsPage";
 
 // Types
-import { RootState } from "./store/store";
+import { RootState, AppDispatch } from "./store/store";
+import { getCurrentUser } from "./store/slices/authSlice";
 
 const App: React.FC = () => {
-   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+   const dispatch = useDispatch<AppDispatch>();
+   const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth);
+
+   // Tentar recuperar usuário se temos token mas ainda não carregamos user
+   useEffect(() => {
+      if (token && !user) {
+         dispatch(getCurrentUser());
+      }
+   }, [token, user, dispatch]);
 
    if (!isAuthenticated) {
       return <LoginPage />;

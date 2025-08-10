@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
    AppBar,
    Toolbar,
@@ -6,7 +6,7 @@ import {
    Drawer,
    List,
    ListItem,
-   ListItemIcon,
+   ListItemButton,
    ListItemText,
    Box,
    IconButton,
@@ -15,6 +15,7 @@ import {
    MenuItem,
    Avatar,
    Divider,
+   ListItemIcon,
 } from "@mui/material";
 import {
    Menu as MenuIcon,
@@ -46,22 +47,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
    const location = useLocation();
-   const { user } = useSelector((state: RootState) => state.auth);
+   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-   const menuItems = [
-      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard", roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"] },
-      { text: "Menu", icon: <Restaurant />, path: "/menu", roles: ["ADMIN", "RECEPCIONISTA"] },
-      { text: "Pedidos", icon: <ShoppingCart />, path: "/orders", roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"] },
-      { text: "Mesas", icon: <TableBar />, path: "/tables", roles: ["ADMIN", "RECEPCIONISTA"] },
-      { text: "Reservas", icon: <EventNote />, path: "/reservations", roles: ["ADMIN", "RECEPCIONISTA"] },
-      { text: "Estoque", icon: <Inventory />, path: "/inventory", roles: ["ADMIN", "COZINHEIRA"] },
-      { text: "Relatórios", icon: <Assessment />, path: "/reports", roles: ["ADMIN"] },
-      { text: "Usuários", icon: <People />, path: "/users", roles: ["ADMIN"] },
-      { text: "Feedback", icon: <Feedback />, path: "/feedback", roles: ["ADMIN", "RECEPCIONISTA"] },
-      { text: "Configurações", icon: <Settings />, path: "/settings", roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"] },
-   ];
-
-   const filteredMenuItems = menuItems.filter((item) => user?.role && item.roles.includes(user.role));
+   const menuItems = useMemo(
+      () => [
+         {
+            text: "Dashboard",
+            icon: <Dashboard />,
+            path: "/dashboard",
+            roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"],
+         },
+         { text: "Menu", icon: <Restaurant />, path: "/menu", roles: ["ADMIN", "RECEPCIONISTA"] },
+         { text: "Pedidos", icon: <ShoppingCart />, path: "/orders", roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"] },
+         { text: "Mesas", icon: <TableBar />, path: "/tables", roles: ["ADMIN", "RECEPCIONISTA"] },
+         { text: "Reservas", icon: <EventNote />, path: "/reservations", roles: ["ADMIN", "RECEPCIONISTA"] },
+         { text: "Estoque", icon: <Inventory />, path: "/inventory", roles: ["ADMIN", "COZINHEIRA"] },
+         { text: "Relatórios", icon: <Assessment />, path: "/reports", roles: ["ADMIN"] },
+         { text: "Usuários", icon: <People />, path: "/users", roles: ["ADMIN"] },
+         { text: "Feedback", icon: <Feedback />, path: "/feedback", roles: ["ADMIN", "RECEPCIONISTA"] },
+         {
+            text: "Configurações",
+            icon: <Settings />,
+            path: "/settings",
+            roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"],
+         },
+      ],
+      []
+   );
+   const filteredMenuItems = useMemo(() => {
+      if (!user) return [];
+      return menuItems.filter((i) => i.roles.includes(user.role));
+   }, [user, menuItems]);
 
    const handleDrawerToggle = () => {
       setDrawerOpen(!drawerOpen);
@@ -113,17 +129,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
          </Box>
          <Divider />
          <List>
-            {filteredMenuItems.map((item) => (
-               <ListItem
-                  button
-                  key={item.text}
-                  onClick={() => handleMenuClick(item.path)}
-                  selected={location.pathname === item.path}
-               >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
+            {!user && isAuthenticated && (
+               <ListItem>
+                  <ListItemText primary="Carregando menus..." />
                </ListItem>
-            ))}
+            )}
+            {user && filteredMenuItems.length === 0 && (
+               <ListItem>
+                  <ListItemText primary="Sem acesso" secondary="Verifique sua permissão" />
+               </ListItem>
+            )}
+            {user &&
+               filteredMenuItems.map((item) => (
+                  <ListItem disablePadding key={item.text}>
+                     <ListItemButton
+                        onClick={() => handleMenuClick(item.path)}
+                        selected={location.pathname === item.path}
+                     >
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText primary={item.text} />
+                     </ListItemButton>
+                  </ListItem>
+               ))}
          </List>
       </Box>
    );
@@ -161,7 +188,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   color="inherit"
                >
                   <Avatar sx={{ width: 32, height: 32, bgcolor: "secondary.main" }}>
-                     {user?.name.charAt(0).toUpperCase()}
+                     {user?.name?.charAt(0).toUpperCase()}
                   </Avatar>
                </IconButton>
             </Toolbar>
