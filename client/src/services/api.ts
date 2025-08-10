@@ -179,14 +179,14 @@ export const inventoryAPI = {
       const response: AxiosResponse<Ingredient> = await api.post("/inventory", ingredient);
       return response.data;
    },
-
+   
    updateIngredient: async (id: string, ingredient: Partial<Ingredient>): Promise<Ingredient> => {
       const response: AxiosResponse<Ingredient> = await api.put(`/inventory/${id}`, ingredient);
       return response.data;
    },
 
    updateStock: async (id: string, data: { quantity: number; operation: "add" | "subtract" }): Promise<Ingredient> => {
-      const response: AxiosResponse<Ingredient> = await api.put(`/inventory/${id}/stock`, data);
+      const response: AxiosResponse<Ingredient> = await api.   put(`/inventory/${id}/stock`, data);
       return response.data;
    },
 

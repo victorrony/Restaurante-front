@@ -2,10 +2,16 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { AuthState, LoginRequest, LoginResponse, User } from "../../types";
 import { authAPI } from "../../services/api";
 
+const storedToken = localStorage.getItem("token");
+let storedUser: User | null = null;
+try {
+   const raw = localStorage.getItem("user");
+   if (raw) storedUser = JSON.parse(raw);
+} catch {}
 const initialState: AuthState = {
-   isAuthenticated: false,
-   user: null,
-   token: localStorage.getItem("token"),
+   isAuthenticated: !!storedToken,
+   user: storedUser,
+   token: storedToken,
    loading: false,
    error: null,
 };
@@ -52,6 +58,7 @@ const authSlice = createSlice({
          state.token = null;
          state.error = null;
          localStorage.removeItem("token");
+         localStorage.removeItem("user");
       },
       clearError: (state) => {
          state.error = null;
@@ -75,6 +82,9 @@ const authSlice = createSlice({
             state.user = action.payload.user;
             state.token = action.payload.token;
             state.error = null;
+            try {
+               localStorage.setItem("user", JSON.stringify(action.payload.user));
+            } catch {}
          })
          .addCase(login.rejected, (state, action) => {
             state.loading = false;
@@ -88,6 +98,9 @@ const authSlice = createSlice({
             state.loading = false;
             state.isAuthenticated = true;
             state.user = action.payload;
+            try {
+               localStorage.setItem("user", JSON.stringify(action.payload));
+            } catch {}
          })
          .addCase(getCurrentUser.rejected, (state) => {
             state.loading = false;
@@ -95,6 +108,7 @@ const authSlice = createSlice({
             state.user = null;
             state.token = null;
             localStorage.removeItem("token");
+            localStorage.removeItem("user");
          })
          // Register
          .addCase(register.pending, (state) => {
