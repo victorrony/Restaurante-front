@@ -1,41 +1,39 @@
-import React from "react";
-import { Box, Typography, Grid, Card, CardContent, CardMedia, Chip, Button, Fab, IconButton } from "@mui/material";
-import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
+import React, { useState, useEffect, useCallback } from "react";
+import { Box, Typography, Grid, Card, Button, Fab, CircularProgress } from "@mui/material";
+import { Add } from "@mui/icons-material";
+import MenuItemForm, { MenuItemFormValues } from "../../components/menu/MenuItemForm";
+import { menuAPI } from "../../services/api";
+import { MenuItem } from "../../types";
+import MenuItemsGrid from "../../components/menu/MenuItemsGrid";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
 const MenuPage: React.FC = () => {
-   // Mock data para demonstração
-   const menuItems = [
-      {
-         id: "1",
-         name: "Hambúrguer Clássico",
-         description: "Pão artesanal, carne 180g, queijo, alface, tomate",
-         price: 24.9,
-         image: "/api/placeholder/300/200",
-         available: true,
-         category: { name: "Lanches" },
-         preparationTime: 15,
-      },
-      {
-         id: "2",
-         name: "Pizza Margherita",
-         description: "Molho de tomate, mozzarella, manjericão fresco",
-         price: 32.9,
-         image: "/api/placeholder/300/200",
-         available: true,
-         category: { name: "Pizzas" },
-         preparationTime: 20,
-      },
-      {
-         id: "3",
-         name: "Salmão Grelhado",
-         description: "Salmão fresco grelhado com legumes da estação",
-         price: 45.9,
-         image: "/api/placeholder/300/200",
-         available: false,
-         category: { name: "Peixes" },
-         preparationTime: 25,
-      },
-   ];
+   const [createOpen, setCreateOpen] = useState(false);
+   const [creating, setCreating] = useState(false);
+   const [formError, setFormError] = useState<string | null>(null);
+   const [items, setItems] = useState<MenuItem[]>([]);
+   const [loadingItems, setLoadingItems] = useState(false);
+   const [itemsError, setItemsError] = useState<string | null>(null);
+
+   const userRole = useSelector((s: RootState) => s.auth.user?.role);
+
+   const loadItems = useCallback(async () => {
+      try {
+         setItemsError(null);
+         setLoadingItems(true);
+         const data = await menuAPI.getMenuItems(userRole === "ADMIN" ? { includeAll: true } : undefined);
+         setItems(data);
+      } catch (e: any) {
+         setItemsError(e?.response?.data?.message || e.message || "Falha ao carregar cardápio");
+      } finally {
+         setLoadingItems(false);
+      }
+   }, [userRole]);
+
+   useEffect(() => {
+      loadItems();
+   }, [loadItems]);
 
    return (
       <Box>
@@ -49,76 +47,120 @@ const MenuPage: React.FC = () => {
                </Typography>
             </Box>
 
-            <Button variant="contained" startIcon={<Add />}>
+            <Button variant="contained" startIcon={<Add />} onClick={() => setCreateOpen(true)}>
                Novo Item
             </Button>
          </Box>
 
-         <Grid container spacing={3}>
-            {menuItems.map((item) => (
-               <Grid item xs={12} sm={6} md={4} key={item.id}>
-                  <Card sx={{ height: "100%" }}>
-                     <CardMedia
-                        component="div"
-                        sx={{
-                           height: 200,
-                           backgroundColor: "#f5f5f5",
-                           display: "flex",
-                           alignItems: "center",
-                           justifyContent: "center",
-                        }}
-                     >
-                        <Typography variant="body2" color="text.secondary">
-                           Imagem do Prato
+         <Box mb={3}>
+            <Grid container spacing={3}>
+               <Grid item xs={12} sm={6} md={4} key="new-card">
+                  <Card
+                     onClick={() => setCreateOpen(true)}
+                     sx={{
+                        height: "100%",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        p: 2,
+                        border: "2px dashed",
+                        borderColor: "divider",
+                        bgcolor: "grey.50",
+                        transition: "all .2s",
+                        "&:hover": { borderColor: "primary.main", bgcolor: "grey.100" },
+                     }}
+                  >
+                     <Box textAlign="center" display="flex" flexDirection="column" gap={1}>
+                        <Add color="primary" />
+                        <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                           Novo Item do Cardápio
                         </Typography>
-                     </CardMedia>
-                     <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="start" mb={1}>
-                           <Typography variant="h6" fontWeight="bold">
-                              {item.name}
-                           </Typography>
-                           <Chip
-                              label={item.available ? "Disponível" : "Indisponível"}
-                              color={item.available ? "success" : "error"}
-                              size="small"
-                           />
-                        </Box>
-
-                        <Typography variant="body2" color="text.secondary" mb={2}>
-                           {item.description}
+                        <Typography variant="caption" color="text.secondary">
+                           Clique para adicionar
                         </Typography>
-
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                           <Typography variant="h6" color="primary" fontWeight="bold">
-                              R$ {item.price.toFixed(2)}
-                           </Typography>
-                           <Typography variant="body2" color="text.secondary">
-                              {item.preparationTime} min
-                           </Typography>
-                        </Box>
-
-                        <Chip label={item.category.name} variant="outlined" size="small" sx={{ mb: 2 }} />
-
-                        <Box display="flex" justifyContent="space-between">
-                           <IconButton size="small" color="primary">
-                              <Visibility />
-                           </IconButton>
-                           <IconButton size="small" color="info">
-                              <Edit />
-                           </IconButton>
-                           <IconButton size="small" color="error">
-                              <Delete />
-                           </IconButton>
-                        </Box>
-                     </CardContent>
+                     </Box>
                   </Card>
                </Grid>
-            ))}
-         </Grid>
+            </Grid>
+         </Box>
+         {loadingItems ? (
+            <Box display="flex" justifyContent="center" mt={4}>
+               <CircularProgress size={32} />
+            </Box>
+         ) : itemsError ? (
+            <Typography color="error" variant="body2">
+               {itemsError}
+            </Typography>
+         ) : (
+            <MenuItemsGrid
+               items={items.map((i) => ({
+                  id: i.id,
+                  name: i.name,
+                  description: i.description,
+                  price: Number(i.price),
+                  image: i.image,
+                  available: i.available,
+                  category: i.category ? { name: i.category.name } : undefined,
+                  preparationTime: i.preparationTime,
+               }))}
+               onEdit={(item) => {
+                  // TODO: abrir form de edição com item (preencher form com initialValues)
+                  console.log("edit", item);
+               }}
+               onDelete={async (item) => {
+                  if (!window.confirm(`Remover o item "${item.name}"?`)) return;
+                  try {
+                     await menuAPI.deleteMenuItem(item.id);
+                     setItems((prev) => prev.filter((p) => p.id !== item.id));
+                  } catch (e: any) {
+                     console.error(e);
+                  }
+               }}
+               onView={(item) => console.log("view", item)}
+            />
+         )}
 
-         <Fab color="primary" aria-label="add" sx={{ position: "fixed", bottom: 16, right: 16 }}>
+         <Fab
+            color="primary"
+            aria-label="add"
+            sx={{ position: "fixed", bottom: 16, right: 16 }}
+            onClick={() => setCreateOpen(true)}
+         >
             <Add />
          </Fab>
+
+         <MenuItemForm
+            open={createOpen}
+            loading={creating}
+            error={formError}
+            onCancel={() => setCreateOpen(false)}
+            onSubmit={async (vals: MenuItemFormValues) => {
+               setFormError(null);
+               setCreating(true);
+               try {
+                  const created = await menuAPI.createMenuItem({
+                     name: vals.name.trim(),
+                     description: vals.description || undefined,
+                     price: Number(vals.price),
+                     categoryId: vals.categoryId,
+                     available: vals.available,
+                     preparationTime: vals.preparationTime ? Number(vals.preparationTime) : undefined,
+                     image: vals.image || undefined,
+                     isBase: vals.isBase,
+                     isProteina: vals.isProteina,
+                     isAcompanhamento: vals.isAcompanhamento,
+                     isBebida: vals.isBebida,
+                  } as any);
+                  setItems((prev) => [created, ...prev]);
+                  setCreateOpen(false);
+               } catch (e: any) {
+                  setFormError(e?.response?.data?.message || e.message || "Erro ao criar item");
+               } finally {
+                  setCreating(false);
+               }
+            }}
+         />
       </Box>
    );
 };

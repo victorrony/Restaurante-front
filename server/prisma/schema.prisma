@@ -90,6 +90,11 @@ model MenuItem {
   image       String?
   available   Boolean @default(true)
   preparationTime Int? // em minutos
+  // Flags para uso em montagem de refeição personalizada
+  isBase           Boolean @default(false)
+  isProteina       Boolean @default(false)
+  isAcompanhamento Boolean @default(false)
+  isBebida         Boolean @default(false)
   
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])

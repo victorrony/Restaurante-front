@@ -11,6 +11,7 @@ export interface GuestSelection {
    proteina: ProteinaTipo;
    acompanhamento: AcompanhamentoTipo;
    observacao?: string;
+   bebidas?: string; // Ex: "REFRIGERANTE", "SUCO", "ÁGUA"
 }
 
 interface Props {
@@ -54,6 +55,19 @@ const GuestMealCard: React.FC<Props> = ({ guest, onChange }) => {
             >
                <MenuItem value="LEGUMES">Legumes</MenuItem>
                <MenuItem value="SALADA">Salada</MenuItem>
+            </Select>
+         </FormControl>
+
+         <FormControl size="small">
+            <InputLabel>Bebidas</InputLabel>
+            <Select
+               value={guest.bebidas}
+               label="Bebidas"
+               onChange={(e) => onChange({ bebidas: e.target.value as string })}
+            >
+               <MenuItem value="REFRIGERANTE">Refrigerante</MenuItem>
+               <MenuItem value="SUCO">Suco</MenuItem>
+               <MenuItem value="ÁGUA">Água</MenuItem>
             </Select>
          </FormControl>
 

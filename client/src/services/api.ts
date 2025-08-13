@@ -70,13 +70,20 @@ export const authAPI = {
 
 // Menu API
 export const menuAPI = {
-   getMenuItems: async (): Promise<MenuItem[]> => {
-      const response: AxiosResponse<MenuItem[]> = await api.get("/menu");
+   getMenuItems: async (options?: { includeAll?: boolean }): Promise<MenuItem[]> => {
+      const response: AxiosResponse<MenuItem[]> = await api.get("/menu", {
+         params: options?.includeAll ? { includeAll: true } : undefined,
+      });
       return response.data;
    },
 
    getCategories: async (): Promise<Category[]> => {
       const response: AxiosResponse<Category[]> = await api.get("/menu/categories");
+      return response.data;
+   },
+
+   createCategory: async (data: { name: string; description?: string; order?: number }): Promise<Category> => {
+      const response: AxiosResponse<Category> = await api.post("/menu/categories", data);
       return response.data;
    },
 
@@ -179,14 +186,14 @@ export const inventoryAPI = {
       const response: AxiosResponse<Ingredient> = await api.post("/inventory", ingredient);
       return response.data;
    },
-   
+
    updateIngredient: async (id: string, ingredient: Partial<Ingredient>): Promise<Ingredient> => {
       const response: AxiosResponse<Ingredient> = await api.put(`/inventory/${id}`, ingredient);
       return response.data;
    },
 
    updateStock: async (id: string, data: { quantity: number; operation: "add" | "subtract" }): Promise<Ingredient> => {
-      const response: AxiosResponse<Ingredient> = await api.   put(`/inventory/${id}/stock`, data);
+      const response: AxiosResponse<Ingredient> = await api.put(`/inventory/${id}/stock`, data);
       return response.data;
    },
 
