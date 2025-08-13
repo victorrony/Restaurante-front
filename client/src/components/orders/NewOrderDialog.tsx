@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
    Dialog,
    DialogTitle,
@@ -19,29 +19,20 @@ import {
 import { ContentCopy } from "@mui/icons-material";
 import GuestMealCard from "./GuestSelectionCard";
 import GuestMealSummaryCard from "./GuestMealSummaryCard";
+import { menuAPI } from "../../services/api";
 
 type Category = "PRATOS" | "BEBIDAS" | "SOBREMESAS" | "OUTROS";
 type BaseTipo = "ARROZ" | "SOPA";
 type ProteinaTipo = "CARNE" | "PEIXE";
 type AcompanhamentoTipo = "LEGUMES" | "SALADA";
 
-interface MenuMockItem {
+// Real menu fetched from API
+interface AdaptedMenuItem {
    id: string;
    name: string;
    price: number;
    category: Category;
 }
-
-const mockMenu: MenuMockItem[] = [
-   { id: "m1", name: "Arroz c/ Carne", price: 12, category: "PRATOS" },
-   { id: "m2", name: "Arroz c/ Peixe", price: 14, category: "PRATOS" },
-   { id: "m3", name: "Sopa c/ Carne", price: 11, category: "PRATOS" },
-   { id: "m4", name: "Sopa c/ Peixe", price: 13, category: "PRATOS" },
-   { id: "m5", name: "Refrigerante", price: 6, category: "BEBIDAS" },
-   { id: "m6", name: "Sumo Natural", price: 9, category: "BEBIDAS" },
-   { id: "m7", name: "Legumes Salteados", price: 5, category: "OUTROS" },
-   { id: "m8", name: "Salada Fresca", price: 5, category: "OUTROS" },
-];
 
 interface OrderItemDraft {
    id: string;
@@ -95,9 +86,34 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
       { id: 1, base: "ARROZ", proteina: "CARNE", acompanhamento: "LEGUMES" },
    ]);
 
-   // Itens adicionais (bebidas, sobremesas, etc)
-   // Extras temporariamente desativados
+   // Real menu items
+   const [menuItems, setMenuItems] = useState<AdaptedMenuItem[]>([]);
+   const [menuError, setMenuError] = useState<string | null>(null);
+
+   // Extras selecionados (bebidas, sobremesas)
    const [items, setItems] = useState<OrderItemDraft[]>([]);
+
+   useEffect(() => {
+      const loadMenu = async () => {
+         // optional loading state removed to avoid unused variable warning
+         setMenuError(null);
+         try {
+            const data = await menuAPI.getMenuItems();
+            const adapted: AdaptedMenuItem[] = data.map((m) => ({
+               id: m.id,
+               name: m.name,
+               price: m.price,
+               category: (m.category?.name?.toUpperCase() as Category) || "OUTROS",
+            }));
+            setMenuItems(adapted);
+         } catch (e: any) {
+            setMenuError(e?.response?.data?.message || e.message || "Falha ao carregar menu");
+         } finally {
+            /* no-op */
+         }
+      };
+      loadMenu();
+   }, []);
 
    // Auto ajustar quantidade de guests quando muda people
    React.useEffect(() => {
@@ -168,12 +184,12 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
    const canCreate = tableNumber !== "" && guests.length > 0 && !creating;
 
    // Mapeia combinação base+proteína para item de menu mock
-   const mapGuestToMenuItem = (g: GuestSelection): MenuMockItem | undefined => {
-      if (g.base === "ARROZ" && g.proteina === "CARNE") return mockMenu.find((m) => m.id === "m1");
-      if (g.base === "ARROZ" && g.proteina === "PEIXE") return mockMenu.find((m) => m.id === "m2");
-      if (g.base === "SOPA" && g.proteina === "CARNE") return mockMenu.find((m) => m.id === "m3");
-      if (g.base === "SOPA" && g.proteina === "PEIXE") return mockMenu.find((m) => m.id === "m4");
-      return undefined;
+   // Map base+proteina to a real menu item by name heuristic
+   const mapGuestToMenuItem = (g: GuestSelection): AdaptedMenuItem | undefined => {
+      const patterns = [`${g.base} ${g.proteina}`, `${g.base} c/ ${g.proteina}`, `${g.base} com ${g.proteina}`].map(
+         (p) => p.toLowerCase()
+      );
+      return menuItems.find((m) => patterns.some((p) => m.name.toLowerCase().includes(p)));
    };
 
    const buildGuestItems = () => {
@@ -329,95 +345,6 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
 
                <Divider />
 
-               {/* Itens extras */}
-               {/* <Typography variant="subtitle1" fontWeight="bold">
-                  Extras (Bebidas, Sobremesas etc)
-               </Typography> */}
-
-               {/* <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
-                  <FormControl sx={{ minWidth: 140 }}>
-                     <InputLabel>Categoria</InputLabel>
-                     <Select
-                        value={category}
-                        label="Categoria"
-                        onChange={(e) => {
-                           setCategory(e.target.value as Category);
-                           setSelectedMenuId("");
-                        }}
-                     >
-                        <MenuItem value="BEBIDAS">Bebidas</MenuItem>
-                        <MenuItem value="PRATOS">Pratos</MenuItem>
-                        <MenuItem value="SOBREMESAS">Sobremesas</MenuItem>
-                        <MenuItem value="OUTROS">Outros</MenuItem>
-                     </Select>
-                  </FormControl>
-
-                  <FormControl sx={{ minWidth: 260 }}>
-                     <InputLabel>Item</InputLabel>
-                     <Select value={selectedMenuId} label="Item" onChange={(e) => setSelectedMenuId(e.target.value)}>
-                        {filteredMenu.map((m) => (
-                           <MenuItem key={m.id} value={m.id}>
-                              {m.name} - R$ {m.price.toFixed(2)}
-                           </MenuItem>
-                        ))}
-                     </Select>
-                  </FormControl>
-
-                  <Tooltip title="Adicionar item">
-                     <span>
-                        <IconButton
-                           color="primary"
-                           onClick={addItem}
-                           disabled={!selectedMenuId}
-                           sx={{ border: "1px solid", borderColor: "divider" }}
-                        >
-                           <Add />
-                        </IconButton>
-                     </span>
-                  </Tooltip>
-               </Box> */}
-
-               {/* <Box display="flex" flexDirection="column" gap={1}>
-                  {items.length === 0 && (
-                     <Typography variant="body2" color="text.secondary">
-                        Nenhum extra adicionado.
-                     </Typography>
-                  )}
-                  {items.map((it) => (
-                     <Box
-                        key={it.id}
-                        display="flex"
-                        alignItems="center"
-                        gap={2}
-                        sx={{
-                           p: 1,
-                           border: "1px solid",
-                           borderColor: "divider",
-                           borderRadius: 1,
-                        }}
-                     >
-                        <Typography variant="body2" sx={{ flex: 1 }}>
-                           {it.name}
-                        </Typography>
-                        <TextField
-                           size="small"
-                           type="number"
-                           label="Qtd"
-                           value={it.quantity}
-                           onChange={(e) => updateQty(it.id, Number(e.target.value))}
-                           sx={{ width: 90 }}
-                           inputProps={{ min: 0 }}
-                        />
-                        <Typography variant="body2">R$ {(it.price * it.quantity).toFixed(2)}</Typography>
-                        <IconButton onClick={() => removeItem(it.id)} size="small" color="error">
-                           <Delete fontSize="small" />
-                        </IconButton>
-                     </Box>
-                  ))}
-               </Box> */}
-
-               <Divider />
-
                <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography variant="h6">Total estimado: R$ {total.toFixed(2)}</Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -428,6 +355,13 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
          </DialogContent>
          <DialogActions>
             <Button onClick={onClose}>Cancelar</Button>
+            {menuError && (
+               <Box mr={2} display="flex" alignItems="center">
+                  <Typography variant="caption" color="error">
+                     {menuError}
+                  </Typography>
+               </Box>
+            )}
             {errorMsg && (
                <Box mr={2} display="flex" alignItems="center">
                   <Typography variant="caption" color="error">
