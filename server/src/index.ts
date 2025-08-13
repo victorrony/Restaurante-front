@@ -1,3 +1,4 @@
+// 
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -117,7 +118,7 @@ export { io };
 // Error handling
 app.use(errorHandler);
 
-// 404 handler
+// 404 handler  
 app.use("*", (req, res) => {
    res.status(404).json({
       error: "Rota não encontrada",
