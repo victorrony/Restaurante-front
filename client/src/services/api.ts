@@ -15,7 +15,7 @@ import {
 } from "../types";
 
 // Configuração base do axios
-const API_BASE_URL = process.env.REACT_APP_API_URL || "/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://restaurante-back-production.up.railway.app';
 
 const api = axios.create({
    baseURL: API_BASE_URL,
