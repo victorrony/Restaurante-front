@@ -1,274 +1,126 @@
-# Sistema de Gestão de Restaurante
+# Frontend – Sistema de Gestão de Restaurante
 
-Um sistema completo de gestão de restaurante desenvolvido com React.js e Node.js, oferecendo diferentes perfis de
-usuário e funcionalidades específicas para cada papel no restaurante.
+Aplicação web (SPA) desenvolvida em **React + TypeScript** para gestão operacional de um restaurante: pedidos, mesas,
+cardápio, reservas, feedback, inventário, relatórios e usuários. Este README descreve APENAS o frontend.
 
-## 🚀 Tecnologias Utilizadas
+## 🚀 Stack Principal
 
-### Backend
+-  React 18 (CRA / react-scripts)
+-  TypeScript
+-  Redux Toolkit (estado global)
+-  React Router DOM (navegação)
+-  Material UI + TailwindCSS (UI & estilos utilitários)
+-  Axios (HTTP)
+-  Socket.IO Client (tempo real)
 
--  **Node.js** com Express
--  **TypeScript** para tipagem estática
--  **PostgreSQL** como banco de dados
--  **Prisma ORM** para gerenciamento do banco
--  **JWT** para autenticação
--  **Socket.IO** para atualizações em tempo real
--  **bcryptjs** para criptografia de senhas
+## ✅ Funcionalidades (Interface)
 
-### Frontend
+-  Autenticação e controle de sessão
+-  Dashboard com visão geral (pedidos, mesas, faturamento, etc.)
+-  Gestão de Cardápio (CRUD de itens)
+-  Pedidos em tempo real (atualização via WebSocket)
+-  Gestão de Mesas (estado: livre, ocupada, reservada)
+-  Reservas (listagem e status)
+-  Inventário / Estoque (itens e quantidades)
+-  Relatórios (visão analítica – consumo, vendas)
+-  Feedback de clientes
+-  Tema customizado (MUI Theme)
 
--  **React.js** com TypeScript
--  **Redux Toolkit** para gerenciamento de estado
--  **Material-UI** para componentes de interface
--  **TailwindCSS** para estilização
--  **Axios** para requisições HTTP
+## 🌐 Integração com Backend
 
-## 👥 Perfis de Usuário
+O frontend consome uma API hospedada (ex: Railway). Configure as variáveis de ambiente (build-time) para apontar para o
+backend correto.
 
-### 🏨 Recepcionista
+## 🔐 Variáveis de Ambiente
 
--  Registro e gestão de pedidos
--  Controle de mesas e ocupação
--  Fechamento de contas
--  Gestão de reservas
--  Atendimento ao cliente
+Crie um arquivo `.env` (não versionado) dentro de `client/` (ou configure no painel da Vercel):
 
-### 👩‍🍳 Cozinheira
+```
+REACT_APP_API_URL=https://restaurante-back-production.up.railway.app/api
+REACT_APP_SOCKET_URL=https://restaurante-back-production.up.railway.app
+REACT_APP_NAME=Sistema de Gestão de Restaurante
+REACT_APP_VERSION=1.0.0
+REACT_APP_MAX_FILE_SIZE=5242880
+REACT_APP_ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,image/webp
+REACT_APP_ENABLE_NOTIFICATIONS=true
+REACT_APP_ENABLE_SOUND=true
+REACT_APP_ENABLE_DARK_MODE=true
+REACT_APP_DEBUG=false
+REACT_APP_LOG_LEVEL=production
+NODE_ENV=production
+GENERATE_SOURCEMAP=false
+```
 
--  Visualização de pedidos em tempo real
--  Atualização de status de preparação
--  Controle de tempo de preparo
--  Gestão de prioridades
+Observação: Variáveis que começam com `REACT_APP_` são embutidas no bundle – não coloque segredos.
 
-### 👨‍💼 Administrador
+## � Estrutura
 
--  Gestão completa do sistema
--  Relatórios financeiros e operacionais
--  Gerenciamento de usuários
--  Configurações do sistema
--  Controle de estoque e inventário
+```
+client/
+├── public/                 # index.html, manifest, favicon
+├── src/
+│   ├── components/         # Componentes reutilizáveis
+│   │   ├── Layout/
+│   │   ├── menu/
+│   │   └── orders/
+│   ├── pages/              # Páginas (rotas)
+│   │   ├── Auth/
+│   │   ├── Dashboard/
+│   │   ├── Menu/
+│   │   ├── Orders/
+│   │   ├── Inventory/
+│   │   ├── Reports/
+│   │   ├── Reservations/
+│   │   ├── Tables/
+│   │   └── Users/
+│   ├── services/           # Axios / API abstraction
+│   ├── store/              # Redux store + slices
+│   ├── types/              # Tipagens globais
+│   ├── index.tsx           # Entrada ReactDOM
+│   └── App.tsx             # App root
+├── tailwind.config.js
+├── postcss.config.js
+├── tsconfig.json
+└── package.json
+```
 
-## 🍽️ Funcionalidades Principais
-
--  ✅ **Gestão de Mesas**: Controle de ocupação e status das mesas
--  ✅ **Sistema de Pedidos**: Registro, acompanhamento e finalização
--  ✅ **Controle de Estoque**: Gestão de ingredientes e produtos
--  ✅ **Sistema de Pagamentos**: Múltiplas formas de pagamento
--  ✅ **Gestão de Reservas**: Reservas online e presenciais
--  ✅ **Cardápio Digital**: Interface moderna com categorias
--  ✅ **Relatórios**: Analytics e relatórios financeiros
--  ✅ **Feedback**: Sistema de avaliação dos clientes
--  ✅ **Notificações**: Atualizações em tempo real
-
-## 📦 Pré-requisitos
-
-Antes de começar, certifique-se de ter instalado:
-
--  **Node.js** (versão 16 ou superior)
--  **PostgreSQL** (versão 12 ou superior)
--  **npm** ou **yarn**
-
-## 🛠️ Instalação e Configuração
-
-### 1. Clone o repositório
+## 🔧 Scripts (dentro de `client/`)
 
 ```bash
-git clone https://github.com/victorrony/Restaurante.git
-cd Restaurante
+npm start          # Desenvolvimento (http://localhost:3000)
+npm run build      # Build produção (gera /build)
+npm test           # Testes (se configurados)
+npm run eject      # (Irreversível) expõe configs do CRA
 ```
 
-### 2. Instale as dependências
+## 🛠 Instalação Local
 
 ```bash
-# Instala dependências do backend e frontend
-npm run install:all
+git clone https://github.com/victorrony/Restaurante-front.git
+cd Restaurante-front/client
+npm install
+cp .env.example .env   # Ajuste as variáveis
+npm start
 ```
 
-### 3. Configure o banco de dados PostgreSQL
+## 🧪 Qualidade / Boas Práticas
 
-#### 3.1. Criar banco de dados
-
-```sql
--- No PostgreSQL, execute:
-CREATE DATABASE restaurante_db;
-CREATE USER postgres WITH PASSWORD '123456';
-GRANT ALL PRIVILEGES ON DATABASE restaurante_db TO postgres;
-```
-
-#### 3.2. Configurar variáveis de ambiente
-
-```bash
-cd server
-```
-
-Crie o arquivo `.env` (ou copie do exemplo):
-
-```env
-# Database
-DATABASE_URL="postgresql://postgres:123456@localhost:5432/restaurante_db"
-
-# JWT
-JWT_SECRET="restaurante_jwt_secret_super_seguro_2024_key_desenvolvimento"
-JWT_EXPIRE="7d"
-
-# Server
-PORT=5001
-NODE_ENV="development"
-
-# Frontend URL
-FRONTEND_URL="http://localhost:3000"
-
-# CORS
-CORS_ORIGIN="http://localhost:3000"
-```
-
-### 4. Configure e popule o banco de dados
-
-```bash
-cd server
-
-# Gerar cliente Prisma
-npx prisma generate
-
-# Criar tabelas no banco
-npx prisma db push
-
-# Popular banco com dados iniciais (usuários e mesas)
-npm run seed
-```
-
-### 5. Execute o projeto
-
-```bash
-# Na raiz do projeto, execute ambos os serviços
-npm run dev
-```
-
-**Ou execute separadamente:**
-
-```bash
-# Terminal 1 - Backend
-cd server && npm run dev
-
-# Terminal 2 - Frontend
-cd client && npm start
-```
-
-```bash
-# Na raiz do projeto
-npm run dev
-```
-
-## 🌐 Acesso ao Sistema
-
--  **Frontend**: http://localhost:3000
--  **Backend API**: http://localhost:5001
-
-### 👤 Usuários de Teste
-
-O sistema já vem com usuários pré-cadastrados para teste:
-
-| Perfil            | Email                    | Senha       | Funcionalidades                  |
-| ----------------- | ------------------------ | ----------- | -------------------------------- |
-| **Administrador** | admin@restaurante.com    | admin123    | Acesso completo ao sistema       |
-| **Recepcionista** | recepcao@restaurante.com | recepcao123 | Gestão de mesas e pedidos        |
-| **Cozinheira**    | cozinha@restaurante.com  | cozinha123  | Visualização e status de pedidos |
-
-## 📱 Estrutura do Projeto
-
-```
-Restaurante/
-├── 📁 client/                 # Frontend React
-│   ├── 📁 public/            # Arquivos públicos
-│   ├── 📁 src/               # Código fonte
-│   │   ├── 📁 components/    # Componentes reutilizáveis
-│   │   ├── 📁 pages/         # Páginas da aplicação
-│   │   ├── 📁 services/      # Serviços e APIs
-│   │   ├── 📁 store/         # Redux store e slices
-│   │   └── 📁 types/         # Definições TypeScript
-│   └── package.json
-├── 📁 server/                # Backend Node.js
-│   ├── 📁 prisma/           # Schema e migrações
-│   ├── 📁 src/              # Código fonte
-│   │   ├── 📁 middleware/   # Middlewares personalizados
-│   │   ├── 📁 routes/       # Rotas da API
-│   │   └── 📁 lib/          # Configurações e utilitários
-│   └── package.json
-├── 📄 package.json          # Scripts do monorepo
-├── 📄 install.sh            # Script de instalação
-└── 📄 README.md
-```
-
-## 🔧 Scripts Disponíveis
-
-Na raiz do projeto:
-
-```bash
-npm run dev              # Executa frontend e backend simultaneamente
-npm run install:all      # Instala dependências de ambos os projetos
-npm run build           # Build de produção
-npm run start           # Inicia aplicação em produção
-```
-
-No diretório `server/`:
-
-```bash
-npm run dev             # Inicia servidor em modo desenvolvimento
-npm run build           # Build do backend
-npm run start           # Inicia servidor em produção
-npx prisma studio       # Interface visual do banco de dados
-```
-
-No diretório `client/`:
-
-```bash
-npm start               # Inicia aplicação React
-npm run build           # Build do frontend
-npm test                # Executa testes
-```
-
-## 🔧 Solução de Problemas
-
-### Erro "EADDRINUSE: address already in use"
-
-```
-
-## 🔌 API Endpoints
-
-### Autenticação
-
--  `POST /api/auth/login` - Login de usuário
--  `POST /api/auth/register` - Registro de usuário
--  `GET /api/auth/me` - Dados do usuário logado
-
-### Gestão
-
--  `GET /api/tables` - Listar mesas
--  `GET /api/orders` - Listar pedidos
--  `GET /api/menu` - Cardápio
--  `GET /api/reservations` - Reservas
--  `GET /api/inventory` - Estoque
--  `GET /api/reports` - Relatórios
+-  Tipagem estrita (`strict: true` no TS)
+-  Slices organizados por domínio (`store/slices/*`)
+-  Evitar lógica pesada em componentes – preferir hooks ou services
+-  Preferir componentes stateless + containers quando necessário
 
 ## 🤝 Contribuição
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+1. Fork
+2. Branch: `feat/nome-da-feature`
+3. Commit: `feat: descrição curta`
+4. Pull Request
 
-## 📞 Suporte
+## � Licença
 
-Para suporte e dúvidas:
-
--  Abra uma issue no GitHub
--  Entre em contato: victorrony89@gmail.com
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+MIT – use livremente citando o autor.
 
 ---
 
-**Desenvolvido com ❤️ por Victor Rony**
+Desenvolvido com ❤️ por **Victor Rony**
