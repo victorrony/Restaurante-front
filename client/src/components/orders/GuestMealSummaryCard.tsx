@@ -4,9 +4,11 @@ import { GuestSelection } from "./GuestSelectionCard";
 
 interface Props {
    guest: GuestSelection;
+   title: string;
+   summary: Record<string, number>;
 }
 
-const GuestMealSummaryCard: React.FC<Props> = ({ guest }) => {
+const GuestMealSummaryCard: React.FC<Props> = ({ guest, title, summary }) => {
    const descricao = `${guest.base} + ${guest.proteina} + ${guest.acompanhamento}`;
    return (
       <Paper

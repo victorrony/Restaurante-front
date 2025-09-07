@@ -40,6 +40,7 @@ interface Props {
    onCancel: () => void;
    onSubmit: (values: MenuItemFormValues) => void | Promise<void>;
    allowCreateCategory?: boolean;
+   viewMode?: boolean;
 }
 
 const defaultValues: MenuItemFormValues = {
@@ -64,6 +65,7 @@ const MenuItemForm: React.FC<Props> = ({
    onCancel,
    onSubmit,
    allowCreateCategory = true,
+   viewMode = false,
 }) => {
    const [values, setValues] = useState<MenuItemFormValues>({ ...defaultValues, ...initialValues });
    const [categories, setCategories] = useState<Category[]>([]);
@@ -98,13 +100,16 @@ const MenuItemForm: React.FC<Props> = ({
 
    return (
       <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
-         <DialogTitle>{initialValues?.name ? "Editar Item" : "Novo Item do Cardápio"}</DialogTitle>
+         <DialogTitle>
+            {viewMode ? "Visualizar Item" : initialValues?.name ? "Editar Item" : "Novo Item do Cardápio"}
+         </DialogTitle>
          <DialogContent sx={{ pt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
                label="Nome"
                value={values.name}
                onChange={(e) => handleChange("name", e.target.value)}
                fullWidth
+               disabled={viewMode}
             />
             <TextField
                label="Descrição"
@@ -113,6 +118,7 @@ const MenuItemForm: React.FC<Props> = ({
                fullWidth
                multiline
                minRows={2}
+               disabled={viewMode}
             />
             <Box display="flex" gap={2} flexWrap="wrap">
                <TextField
@@ -122,6 +128,7 @@ const MenuItemForm: React.FC<Props> = ({
                   onChange={(e) => handleChange("price", e.target.value)}
                   sx={{ flex: 1, minWidth: 140 }}
                   inputProps={{ min: 0, step: 0.01 }}
+                  disabled={viewMode}
                />
                <TextField
                   label="Tempo Prep. (min)"
@@ -130,6 +137,7 @@ const MenuItemForm: React.FC<Props> = ({
                   onChange={(e) => handleChange("preparationTime", e.target.value)}
                   sx={{ width: 180 }}
                   inputProps={{ min: 0 }}
+                  disabled={viewMode}
                />
             </Box>
             <FormControl fullWidth>
@@ -138,20 +146,21 @@ const MenuItemForm: React.FC<Props> = ({
                   value={values.categoryId}
                   label="Categoria"
                   onChange={(e) => handleChange("categoryId", e.target.value)}
+                  disabled={viewMode}
                >
                   {categories.map((c) => (
                      <MenuItem key={c.id} value={c.id}>
                         {c.name}
                      </MenuItem>
                   ))}
-                  {allowCreateCategory && (
+                  {allowCreateCategory && !viewMode && (
                      <MenuItem value="__new__" sx={{ fontStyle: "italic" }}>
                         + Nova Categoria
                      </MenuItem>
                   )}
                </Select>
             </FormControl>
-            {values.categoryId === "__new__" && allowCreateCategory && (
+            {values.categoryId === "__new__" && allowCreateCategory && !viewMode && (
                <Box
                   display="flex"
                   flexDirection="column"
@@ -216,7 +225,11 @@ const MenuItemForm: React.FC<Props> = ({
             )}
             <FormControlLabel
                control={
-                  <Switch checked={values.available} onChange={(e) => handleChange("available", e.target.checked)} />
+                  <Switch 
+                     checked={values.available} 
+                     onChange={(e) => handleChange("available", e.target.checked)}
+                     disabled={viewMode}
+                  />
                }
                label="Disponível"
             />
@@ -226,7 +239,11 @@ const MenuItemForm: React.FC<Props> = ({
             <Box display="flex" flexWrap="wrap" gap={1}>
                <FormControlLabel
                   control={
-                     <Switch checked={!!values.isBase} onChange={(e) => handleChange("isBase", e.target.checked)} />
+                     <Switch 
+                        checked={!!values.isBase} 
+                        onChange={(e) => handleChange("isBase", e.target.checked)}
+                        disabled={viewMode}
+                     />
                   }
                   label="Base"
                />
@@ -235,6 +252,7 @@ const MenuItemForm: React.FC<Props> = ({
                      <Switch
                         checked={!!values.isProteina}
                         onChange={(e) => handleChange("isProteina", e.target.checked)}
+                        disabled={viewMode}
                      />
                   }
                   label="Proteína"
@@ -244,13 +262,18 @@ const MenuItemForm: React.FC<Props> = ({
                      <Switch
                         checked={!!values.isAcompanhamento}
                         onChange={(e) => handleChange("isAcompanhamento", e.target.checked)}
+                        disabled={viewMode}
                      />
                   }
                   label="Acomp."
                />
                <FormControlLabel
                   control={
-                     <Switch checked={!!values.isBebida} onChange={(e) => handleChange("isBebida", e.target.checked)} />
+                     <Switch 
+                        checked={!!values.isBebida} 
+                        onChange={(e) => handleChange("isBebida", e.target.checked)}
+                        disabled={viewMode}
+                     />
                   }
                   label="Bebida"
                />
@@ -258,8 +281,10 @@ const MenuItemForm: React.FC<Props> = ({
             <TextField
                label="URL da Imagem (opcional)"
                value={values.image}
+               type="input"
                onChange={(e) => handleChange("image", e.target.value)}
                fullWidth
+               disabled={viewMode}
             />
             {(error || catError) && (
                <Typography variant="caption" color="error">
@@ -268,20 +293,22 @@ const MenuItemForm: React.FC<Props> = ({
             )}
          </DialogContent>
          <DialogActions>
-            <Button onClick={onCancel}>Cancelar</Button>
-            <Button
-               variant="contained"
-               disabled={
-                  loading ||
-                  !values.name.trim() ||
-                  !values.price ||
-                  !values.categoryId ||
-                  values.categoryId === "__new__"
-               }
-               onClick={handleSubmit}
-            >
-               {loading ? "Salvando..." : "Salvar"}
-            </Button>
+            <Button onClick={onCancel}>{viewMode ? "Fechar" : "Cancelar"}</Button>
+            {!viewMode && (
+               <Button
+                  variant="contained"
+                  disabled={
+                     loading ||
+                     !values.name.trim() ||
+                     !values.price ||
+                     !values.categoryId ||
+                     values.categoryId === "__new__"
+                  }
+                  onClick={handleSubmit}
+               >
+                  {loading ? "Salvando..." : "Salvar"}
+               </Button>
+            )}
          </DialogActions>
       </Dialog>
    );

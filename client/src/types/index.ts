@@ -25,6 +25,13 @@ export interface MenuItem {
    preparationTime?: number;
    categoryId: string;
    category: Category;
+   // Flags vindos do backend para montagem/agrupamento
+   isBase?: boolean;
+   isProteina?: boolean;
+   isAcompanhamento?: boolean;
+   isBebida?: boolean;
+   isPratoDoDia?: boolean;
+   isSobremesa?: boolean;
 }
 
 export interface Category {

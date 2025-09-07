@@ -14,7 +14,6 @@ import InventoryPage from "./pages/Inventory/InventoryPage";
 import ReportsPage from "./pages/Reports/ReportsPage";
 import UsersPage from "./pages/Users/UsersPage";
 import FeedbackPage from "./pages/Feedback/FeedbackPage";
-// import SettingsPage from "./pages/Settings/SettingsPage";
 
 // Types
 import { RootState, AppDispatch } from "./store/store";
@@ -24,7 +23,6 @@ const App: React.FC = () => {
    const dispatch = useDispatch<AppDispatch>();
    const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth);
 
-   // Tentar recuperar usuário se temos token mas ainda não carregamos user
    useEffect(() => {
       if (token && !user) {
          dispatch(getCurrentUser());
@@ -58,7 +56,6 @@ const App: React.FC = () => {
             )}
 
             <Route path="/feedback" element={<FeedbackPage />} />
-            {/* <Route path="/settings" element={<SettingsPage />} /> */}
 
             {/* Redirect para dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

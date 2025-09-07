@@ -23,9 +23,9 @@ export interface MenuItemsGridProps {
 
 const MenuItemsGrid: React.FC<MenuItemsGridProps> = ({ items, onView, onEdit, onDelete }) => {
    return (
-      <Grid container spacing={3}>
+      <Grid container spacing={5}>
          {items.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Grid item xs={12} sm={6} md={2.4} key={item.id}>
                <Card sx={{ height: "100%" }}>
                   <CardMedia
                      component="div"

@@ -13,8 +13,6 @@ cardápio, reservas, feedback, inventário, relatórios e usuários. Este README
 -  Axios (HTTP)
 -  Socket.IO Client (tempo real)
 
-> Documentação detalhada de cada tecnologia e como é usada: consulte **[docs/TECH_STACK.md](./docs/TECH_STACK.md)**.
-
 ## ✅ Funcionalidades (Interface)
 
 -  Autenticação e controle de sessão

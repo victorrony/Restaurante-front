@@ -62,18 +62,17 @@ const OrdersPage: React.FC = () => {
          const updated = await ordersAPI.updateOrderStatus(orderId, { status: newStatus as any });
          dispatch(updateOrder(updated as Order));
       } catch (e) {
-         console.error("Falha ao atualizar status do pedido", e);
+         // Error handled silently for now
       }
    };
 
    const handleUpdateItemStatus = async (orderId: string, itemId: string, newStatus: string) => {
       try {
          await ordersAPI.updateOrderItemStatus(orderId, itemId, { status: newStatus as any });
-         // Estratégia simples: recarregar todos os pedidos para refletir item.
          const refreshed = await ordersAPI.getOrders();
          dispatch(setOrders(refreshed));
       } catch (e) {
-         console.error("Falha ao atualizar status do item", e);
+         // Error handled silently for now
       }
    };
 
@@ -164,6 +163,7 @@ const OrdersPage: React.FC = () => {
             open={newOrderDialog}
             onClose={() => setNewOrderDialog(false)}
             onCreate={async (data: any) => {
+               console.log('🏪 OrdersPage onCreate received data:', data);
                if (creatingOrder) return;
                setCreatingOrder(true);
                try {
@@ -173,15 +173,16 @@ const OrdersPage: React.FC = () => {
                      return;
                   }
                   // Montar payload compatível com API existente
-                  const guestItems = (data.guestItems || []).filter((gi: any) => gi.menuItemId);
-                  const extraItems = data.extraItems || [];
-                  const items = [...guestItems, ...extraItems].map((it: any) => ({
+                  // NewOrderDialog sends all items in data.items array
+                  const items = (data.items || []).filter((item: any) => item.menuItemId).map((it: any) => ({
                      menuItemId: it.menuItemId,
                      quantity: it.quantity,
                      price: it.price,
                      notes: it.notes,
                   }));
+                  console.log('🔄 Mapped items:', items);
                   if (items.length === 0) {
+                     console.log('❌ No valid items mapped');
                      dispatch(setError("Nenhum item de menu válido mapeado para o pedido"));
                      return;
                   }
@@ -190,7 +191,9 @@ const OrdersPage: React.FC = () => {
                      items,
                      notes: data.notes,
                   };
+                  console.log('🚀 Calling API with payload:', payload);
                   const created = await ordersAPI.createOrder(payload);
+                  console.log('✅ API response:', created);
                   dispatch(addOrder(created as Order));
                   // Limpar erro de criação se sucesso
                   dispatch(setError(null));

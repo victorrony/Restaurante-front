@@ -18,13 +18,12 @@ import {
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 import GuestMealCard from "./GuestSelectionCard";
-import GuestMealSummaryCard from "./GuestMealSummaryCard";
 import { menuAPI } from "../../services/api";
 
 type Category = "PRATOS" | "BEBIDAS" | "SOBREMESAS" | "OUTROS";
-type BaseTipo = "ARROZ" | "SOPA";
-type ProteinaTipo = "CARNE" | "PEIXE";
-type AcompanhamentoTipo = "LEGUMES" | "SALADA";
+export type BaseTipo = string;
+export type ProteinaTipo = string;
+export type AcompanhamentoTipo = string;
 
 // Real menu fetched from API
 interface AdaptedMenuItem {
@@ -42,12 +41,14 @@ interface OrderItemDraft {
    category: Category;
 }
 
-interface GuestSelection {
+export interface GuestSelection {
    id: number;
    base: BaseTipo;
    proteina: ProteinaTipo;
    acompanhamento: AcompanhamentoTipo;
    observacao?: string;
+   bebidas?: string;
+   sobremesas?: string;
 }
 
 export interface NewOrderPayload {
@@ -63,7 +64,7 @@ export interface NewOrderPayload {
       base: Record<BaseTipo, number>;
       proteina: Record<ProteinaTipo, number>;
       acompanhamento: Record<AcompanhamentoTipo, number>;
-      extrasCategoria: Record<string, number>; // <--- NOVO
+      extrasCategoria: Record<string, number>;
       extrasItens: Record<string, number>;
    };
 }
@@ -95,7 +96,6 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
 
    useEffect(() => {
       const loadMenu = async () => {
-         // optional loading state removed to avoid unused variable warning
          setMenuError(null);
          try {
             const data = await menuAPI.getMenuItems();
@@ -109,7 +109,7 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
          } catch (e: any) {
             setMenuError(e?.response?.data?.message || e.message || "Falha ao carregar menu");
          } finally {
-            /* no-op */
+            // Loading complete
          }
       };
       loadMenu();
@@ -147,8 +147,6 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
       setGuests((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
    };
 
-   // (Seleção de extras desativada por enquanto; código removido para evitar warnings)
-
    // Resumo agregado
    const summary = useMemo(() => {
       const base: Record<BaseTipo, number> = { ARROZ: 0, SOPA: 0 };
@@ -170,8 +168,7 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
       return { base, proteina, acompanhamento, extrasCategoria, extrasItens };
    }, [guests, items]);
 
-   // Cálculo de total (simples: base + acompanhamento + adicional)
-   // Exemplo: cada base + proteina fixo 10, acompanhamento 4 (ajuste conforme real)
+   // Total calculation with fixed prices
    const baseProteinaValor = 10;
    const acompanhamentoValor = 4;
    const pratosPrincipaisTotal = guests.length * (baseProteinaValor + acompanhamentoValor);
@@ -183,74 +180,156 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
 
    const canCreate = tableNumber !== "" && guests.length > 0 && !creating;
 
-   // Mapeia combinação base+proteína para item de menu mock
    // Map base+proteina to a real menu item by name heuristic
-   const mapGuestToMenuItem = (g: GuestSelection): AdaptedMenuItem | undefined => {
-      const patterns = [`${g.base} ${g.proteina}`, `${g.base} c/ ${g.proteina}`, `${g.base} com ${g.proteina}`].map(
-         (p) => p.toLowerCase()
-      );
-      return menuItems.find((m) => patterns.some((p) => m.name.toLowerCase().includes(p)));
+   const findMenuItemById = (id: string): AdaptedMenuItem | undefined => {
+      return menuItems.find((m) => m.id === id);
    };
 
    const buildGuestItems = () => {
-      return guests.map((g) => {
-         const menuRef = mapGuestToMenuItem(g);
-         return {
-            guestId: g.id,
-            menuItemId: menuRef?.id || null,
-            name: menuRef?.name || `${g.base} + ${g.proteina}`,
-            quantity: 1,
-            price: menuRef?.price ?? baseProteinaValor + acompanhamentoValor,
-            category: "PRATOS" as Category,
-            notes: [g.acompanhamento, g.observacao].filter(Boolean).join(" | ") || undefined,
-         };
+      const allGuestItems: any[] = [];
+
+      guests.forEach((guest) => {
+         // Add each selected menu item as a separate order item
+         if (guest.base) {
+            const baseItem = findMenuItemById(guest.base);
+            if (baseItem) {
+               allGuestItems.push({
+                  menuItemId: baseItem.id,
+                  quantity: 1,
+                  price: baseItem.price,
+                  notes: `Pessoa #${guest.id}${guest.observacao ? ` - ${guest.observacao}` : ""}`,
+               });
+            }
+         }
+
+         if (guest.proteina) {
+            const proteinaItem = findMenuItemById(guest.proteina);
+            if (proteinaItem) {
+               allGuestItems.push({
+                  menuItemId: proteinaItem.id,
+                  quantity: 1,
+                  price: proteinaItem.price,
+                  notes: `Pessoa #${guest.id}${guest.observacao ? ` - ${guest.observacao}` : ""}`,
+               });
+            }
+         }
+
+         if (guest.acompanhamento) {
+            const acompItem = findMenuItemById(guest.acompanhamento);
+            if (acompItem) {
+               allGuestItems.push({
+                  menuItemId: acompItem.id,
+                  quantity: 1,
+                  price: acompItem.price,
+                  notes: `Pessoa #${guest.id}${guest.observacao ? ` - ${guest.observacao}` : ""}`,
+               });
+            }
+         }
+
+         if (guest.bebidas) {
+            const bebidaItem = findMenuItemById(guest.bebidas);
+            if (bebidaItem) {
+               allGuestItems.push({
+                  menuItemId: bebidaItem.id,
+                  quantity: 1,
+                  price: bebidaItem.price,
+                  notes: `Pessoa #${guest.id}${guest.observacao ? ` - ${guest.observacao}` : ""}`,
+               });
+            }
+         }
+
+         if (guest.sobremesas) {
+            const sobremesaItem = findMenuItemById(guest.sobremesas);
+            if (sobremesaItem) {
+               allGuestItems.push({
+                  menuItemId: sobremesaItem.id,
+                  quantity: 1,
+                  price: sobremesaItem.price,
+                  notes: `Pessoa #${guest.id}${guest.observacao ? ` - ${guest.observacao}` : ""}`,
+               });
+            }
+         }
       });
+
+      return allGuestItems;
    };
 
    const handleCreate = async () => {
-      if (!canCreate) return;
+      console.log('🚀 handleCreate called');
+      if (!canCreate) {
+         console.log('❌ Cannot create - validation failed');
+         return;
+      }
       setErrorMsg(null);
       setCreating(true);
+      console.log('📝 Starting order creation...');
       try {
+         // Validate required fields
+         if (!tableNumber ) {
+            throw new Error("Número da mesa é obrigatório");
+         }
+
+         // Check if at least one guest has at least one item selected
+         const hasValidSelections = guests.some(
+            (guest) => guest.base || guest.proteina || guest.acompanhamento || guest.bebidas || guest.sobremesas
+         );
+
+         if (!hasValidSelections) {
+            throw new Error("Pelo menos uma pessoa deve ter pelo menos um item selecionado");
+         }
+
+         console.log('👥 Guests data:', guests);
          const guestItems = buildGuestItems();
-         // Extras convertidos
+         console.log('🍽️ Guest items built:', guestItems);
+         
          const extraItems = items.map((it) => ({
             menuItemId: it.id,
-            name: it.name,
             quantity: it.quantity,
             price: it.price,
-            category: it.category,
+            notes: undefined,
          }));
+         console.log('➕ Extra items:', extraItems);
 
-         const enrichedPayload: NewOrderPayload & { guestItems: any[]; extraItems: any[] } = {
+         // Combine all items for the order
+         const allOrderItems = [...guestItems, ...extraItems];
+         console.log('📦 All Order Items:', allOrderItems);
+
+         // Calculate total from actual items
+         const actualTotal = allOrderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+         console.log('💰 Calculated total:', actualTotal);
+
+         const orderPayload: NewOrderPayload = {
             customerName: customerName.trim() || `Mesa ${tableNumber}`,
             tableNumber: Number(tableNumber),
             status,
             notes: notes.trim() || undefined,
             numberOfPeople: guests.length,
             guests,
-            items, // manter raw extras para compatibilidade
-            totalAmount: total,
+            items: allOrderItems,
+            totalAmount: actualTotal,
             summary,
-            guestItems,
-            extraItems,
          };
+         console.log('📋 Final order payload:', orderPayload);
 
-         // Dispara callback para camada superior (que decidirá chamar API)
-         onCreate(enrichedPayload);
+         console.log('🔄 Calling onCreate...');
+         onCreate(orderPayload);
+         console.log('✅ onCreate called successfully');
 
-         // Reset somente após sucesso
+         // Reset form after success
          setCustomerName("");
          setTableNumber("");
          setStatus("PENDENTE");
          setNotes("");
          setPeople(1);
-         setGuests([{ id: 1, base: "ARROZ", proteina: "CARNE", acompanhamento: "LEGUMES" }]);
-         // extras desativados - estados removidos
-         setItems([]);
+         setGuests([
+            { id: 1, base: "", proteina: "", acompanhamento: "", observacao: "", bebidas: "", sobremesas: "" },
+         ]);
+         setItems([]);         
       } catch (e: any) {
+         console.error('❌ Error in handleCreate:', e);
          setErrorMsg(e?.message || "Erro ao criar pedido");
       } finally {
+         console.log('🏁 handleCreate finished');
          setCreating(false);
       }
    };
@@ -260,15 +339,8 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
          <DialogTitle>Novo Pedido (Rápido)</DialogTitle>
          <DialogContent sx={{ pt: 1 }}>
             <Box mt={1} display="flex" flexDirection="column" gap={3}>
-               {/* Cabeçalho */}
+               {/* Header */}
                <Box display="flex" gap={2} flexWrap="wrap">
-                  {/* <TextField
-                label="Nome / Referência"
-                value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
-                sx={{ flex: 1 }}
-              /> */}
-
                   <TextField
                      label="Mesa"
                      type="number"
@@ -332,16 +404,22 @@ const NewOrderDialog: React.FC<Props> = ({ open, onClose, onCreate }) => {
                </Box>
 
                {/* Resumo agregado rápido */}
-               <Box>
+               {/* <Box>
                   <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-                     Resumo por Pessoa
+                     Resumo por Total
                   </Typography>
-                  <Box display="grid" gap={1} sx={{ gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))" }}>
-                     {guests.map((g) => (
-                        <GuestMealSummaryCard key={`resume-${g.id}`} guest={g} />
-                     ))}
+                  <Box display="grid" gap={1} sx={{ gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
+                     <OrderSummaryCard title="Bases" summary={summary.base} />
+                     <OrderSummaryCard title="Proteínas" summary={summary.proteina} />
+                     <OrderSummaryCard title="Acompanhamentos" summary={summary.acompanhamento} />
+                     {Object.keys(summary.extrasCategoria).length > 0 && (
+                        <OrderSummaryCard title="Extras (Categorias)" summary={summary.extrasCategoria} />
+                     )}
+                     {Object.keys(summary.extrasItens).length > 0 && (
+                        <OrderSummaryCard title="Extras (Itens)" summary={summary.extrasItens} />
+                     )}
                   </Box>
-               </Box>
+               </Box> */}
 
                <Divider />
 

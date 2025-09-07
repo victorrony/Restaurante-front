@@ -15,7 +15,36 @@ import {
 } from "../types";
 
 // Configuração base do axios
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://restaurante-back-production.up.railway.app';
+// Normalize REACT_APP_API_URL in case someone accidentally put a fallback like:
+// "http://localhost:5001/api || https://.../api" in the env (this would be bundled
+// literally and cause requests to go to a bad URL). Prefer a safe runtime selection.
+function getApiBaseUrl(): string {
+   const raw = process.env.REACT_APP_API_URL || "";
+   if (!raw) return "";
+
+   // If env contains a literal '||', split and choose dev/prod appropriate value
+   if (raw.includes("||")) {
+      const parts = raw
+         .split("||")
+         .map((p) => p.trim())
+         .filter(Boolean);
+      try {
+         const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+         // If running locally prefer the localhost entry, otherwise prefer non-localhost
+         if (hostname === "localhost" || hostname === "127.0.0.1") {
+            return parts.find((p) => p.includes("localhost") || p.includes("127.0.0.1")) || parts[0];
+         }
+         return parts.find((p) => !p.includes("localhost") && !p.includes("127.0.0.1")) || parts[0];
+      } catch (e) {
+         return parts[0];
+      }
+   }
+
+   return raw;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
 
 const api = axios.create({
    baseURL: API_BASE_URL,
@@ -24,7 +53,6 @@ const api = axios.create({
    },
 });
 
-//
 // Interceptor para adicionar token
 api.interceptors.request.use(
    (config) => {
@@ -69,6 +97,7 @@ export const authAPI = {
    },
 };
 
+
 // Menu API
 export const menuAPI = {
    getMenuItems: async (options?: { includeAll?: boolean }): Promise<MenuItem[]> => {
@@ -100,6 +129,12 @@ export const menuAPI = {
 
    deleteMenuItem: async (id: string): Promise<void> => {
       await api.delete(`/menu/${id}`);
+   },
+
+   // Get menu items filtered by type for order selection
+   getMenuItemsByType: async (type: 'isBase' | 'isProteina' | 'isAcompanhamento' | 'isBebida' | 'isPratoDoDia'): Promise<MenuItem[]> => {
+      const response: AxiosResponse<MenuItem[]> = await api.get("/menu");
+      return response.data.filter(item => item[type] && item.available);
    },
 };
 
