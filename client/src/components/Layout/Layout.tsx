@@ -66,10 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
          { text: "Usuários", icon: <People />, path: "/users", roles: ["ADMIN"] },
          { text: "Feedback", icon: <Feedback />, path: "/feedback", roles: ["ADMIN", "RECEPCIONISTA"] },
          {
-            text: "Configurações",
-            icon: <Settings />,
-            path: "/settings",
-            roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"],
+            text: "Configurações", icon: <Settings />, path: "/settings", roles: ["ADMIN", "RECEPCIONISTA", "COZINHEIRA"],
          },
       ],
       []

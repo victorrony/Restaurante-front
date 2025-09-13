@@ -20,10 +20,16 @@ const tablesSlice = createSlice({
       setTables: (state, action: PayloadAction<Table[]>) => {
          state.tables = action.payload;
       },
+      addTable: (state, action: PayloadAction<Table>) => {
+         state.tables.push(action.payload);
+      },
       updateTable: (state, action: PayloadAction<Table>) => {
          const index = state.tables.findIndex((table) => table.id === action.payload.id);
          if (index !== -1) {
             state.tables[index] = action.payload;
+         } else {
+            // If table doesn't exist, add it
+            state.tables.push(action.payload);
          }
       },
       setLoading: (state, action: PayloadAction<boolean>) => {
@@ -35,5 +41,5 @@ const tablesSlice = createSlice({
    },
 });
 
-export const { setTables, updateTable, setLoading, setError } = tablesSlice.actions;
+export const { setTables, addTable, updateTable, setLoading, setError } = tablesSlice.actions;
 export default tablesSlice.reducer;

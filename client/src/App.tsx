@@ -18,6 +18,7 @@ import FeedbackPage from "./pages/Feedback/FeedbackPage";
 // Types
 import { RootState, AppDispatch } from "./store/store";
 import { getCurrentUser } from "./store/slices/authSlice";
+import ConfigPage from "./pages/Settings/Settings";
 
 const App: React.FC = () => {
    const dispatch = useDispatch<AppDispatch>();
@@ -56,6 +57,7 @@ const App: React.FC = () => {
             )}
 
             <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/settings" element={<ConfigPage />} />
 
             {/* Redirect para dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

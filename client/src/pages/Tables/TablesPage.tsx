@@ -1,19 +1,143 @@
-import React from "react";
-import { Box, Typography, Grid, Card, CardContent, Button, Chip, Paper, IconButton } from "@mui/material";
-import { Add, QrCode, Edit, CleaningServices, Restaurant } from "@mui/icons-material";
+import React, { useEffect, useState, useCallback } from "react";
+import { Box, Typography, Grid, Card, CardContent, Button, Chip, Paper, IconButton, CircularProgress, Alert } from "@mui/material";
+import { Add, QrCode, Edit, CleaningServices, Restaurant, Visibility } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { RootState } from "../../store/store";
+import { setTables, addTable, updateTable, setLoading, setError } from "../../store/slices/tablesSlice";
+import { tablesAPI } from "../../services/api";
+import { Table } from "../../types";
+import TableFormModal from "../../components/tables/TableFormModal";
+import QRCodeModal from "../../components/tables/QRCodeModal";
+import socketService from "../../services/socket";
 
 const TablesPage: React.FC = () => {
-   // Mock data para demonstração
-   const tables = [
-      { id: "1", number: 1, capacity: 2, status: "LIVRE" },
-      { id: "2", number: 2, capacity: 4, status: "OCUPADA" },
-      { id: "3", number: 3, capacity: 2, status: "LIVRE" },
-      { id: "4", number: 4, capacity: 6, status: "RESERVADA" },
-      { id: "5", number: 5, capacity: 4, status: "OCUPADA" },
-      { id: "6", number: 6, capacity: 2, status: "LIVRE" },
-      { id: "7", number: 7, capacity: 8, status: "MANUTENCAO" },
-      { id: "8", number: 8, capacity: 4, status: "OCUPADA" },
-   ];
+   const dispatch = useDispatch();
+   const navigate = useNavigate();
+   const { tables, loading, error } = useSelector((state: RootState) => state.tables);
+   const { token } = useSelector((state: RootState) => state.auth);
+   const [qrModalOpen, setQrModalOpen] = useState(false);
+   const [editModalOpen, setEditModalOpen] = useState(false);
+   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+
+   const fetchTables = useCallback(async () => {
+      try {
+         dispatch(setLoading(true));
+         dispatch(setError(null));
+         const tablesData = await tablesAPI.getTables();
+         dispatch(setTables(tablesData));
+      } catch (error: any) {
+         if (error.response?.status === 429) {
+            dispatch(setError("Muitas requisições. Aguarde um momento e tente novamente."));
+         } else {
+            dispatch(setError(error.message || "Erro ao carregar mesas"));
+         }
+      } finally {
+         dispatch(setLoading(false));
+      }
+   }, [dispatch]);
+
+   useEffect(() => {
+      fetchTables();
+   }, [fetchTables]);
+
+   useEffect(() => {
+      // Connect socket if authenticated
+      if (token && !socketService.isConnected()) {
+         socketService.connect(token);
+      }
+
+      // Set up socket listeners
+      const handleTableStatusChanged = (data: { tableId: string; status: string }) => {
+         dispatch(updateTable({ id: data.tableId, status: data.status } as Table));
+      };
+
+      const handleTableUpdated = (updatedTable: Table) => {
+         dispatch(updateTable(updatedTable));
+      };
+
+      const handleTableCreated = (newTable: Table) => {
+         dispatch(updateTable(newTable));
+      };
+
+      socketService.onTableStatusChanged(handleTableStatusChanged);
+      socketService.onTableUpdated(handleTableUpdated);
+      socketService.onTableCreated(handleTableCreated);
+
+      return () => {
+         // Clean up socket listeners when component unmounts
+         socketService.offTableStatusChanged();
+         socketService.offTableUpdated();
+         socketService.offTableCreated();
+      };
+   }, [token, dispatch]);
+
+   const handleStatusChange = async (table: Table, newStatus: Table["status"]) => {
+      try {
+         const updatedTable = await tablesAPI.updateTableStatus(table.id, newStatus, table.capacity);
+         dispatch(updateTable(updatedTable));
+      } catch (error: any) {
+         if (error.response?.status === 429) {
+            dispatch(setError("Muitas requisições. Aguarde um momento e tente novamente."));
+         } else {
+            dispatch(setError(error.message || "Erro ao atualizar status da mesa"));
+         }
+      }
+   };
+
+   const handleEditTable = (table: Table) => {
+      setSelectedTable(table);
+      setEditModalOpen(true);
+   };
+
+   const handleShowQR = (table: Table) => {
+      setSelectedTable(table);
+      setQrModalOpen(true);
+   };
+
+   const handleNewTable = () => {
+      setSelectedTable(null);
+      setEditModalOpen(true);
+   };
+
+   const handleTableSubmit = async (tableData: Omit<Table, "id" | "qrCode">) => {
+      try {
+         if (selectedTable) {
+            // Check if status or capacity changed
+            const statusChanged = selectedTable.status !== tableData.status;
+            const capacityChanged = selectedTable.capacity !== tableData.capacity;
+            
+            if (statusChanged || capacityChanged) {
+               const updatedTable = await tablesAPI.updateTableStatus(selectedTable.id, tableData.status, tableData.capacity);
+               dispatch(updateTable(updatedTable));
+            } else {
+               // If nothing changed, show a message
+               dispatch(setError("Nenhuma alteração foi feita na mesa."));
+               return;
+            }
+            
+            // Note: Number updates are not supported by the backend yet
+            if (selectedTable.number !== tableData.number) {
+               dispatch(setError("O número da mesa não pode ser alterado. Apenas status e capacidade foram atualizados."));
+            }
+         } else {
+            // Create new table
+            const newTable = await tablesAPI.createTable(tableData);
+            dispatch(addTable(newTable));
+         }
+      } catch (error: any) {
+         if (error.response?.status === 429) {
+            dispatch(setError("Muitas requisições. Aguarde um momento e tente novamente."));
+         } else {
+            dispatch(setError(error.message || "Erro ao salvar mesa"));
+         }
+         throw error;
+      }
+   };
+
+   const handleViewOrders = (table: Table) => {
+      navigate(`/orders?table=${table.id}&tableNumber=${table.number}`);
+   };
 
    const getStatusColor = (status: string) => {
       switch (status) {
@@ -60,6 +184,14 @@ const TablesPage: React.FC = () => {
       }
    };
 
+   if (loading) {
+      return (
+         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+            <CircularProgress />
+         </Box>
+      );
+   }
+
    return (
       <Box>
          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -72,10 +204,16 @@ const TablesPage: React.FC = () => {
                </Typography>
             </Box>
 
-            <Button variant="contained" startIcon={<Add />}>
+            <Button variant="contained" startIcon={<Add />} onClick={handleNewTable}>
                Nova Mesa
             </Button>
          </Box>
+
+         {error && (
+            <Alert severity="error" sx={{ mb: 3 }} onClose={() => dispatch(setError(null))}>
+               {error}
+            </Alert>
+         )}
 
          {/* Resumo */}
          <Grid container spacing={2} sx={{ mb: 4 }}>
@@ -152,19 +290,29 @@ const TablesPage: React.FC = () => {
                         />
 
                         <Box display="flex" justifyContent="center" gap={1}>
-                           <IconButton size="small" color="primary">
+                           <IconButton size="small" color="primary" onClick={() => handleShowQR(table)} title="Ver QR Code">
                               <QrCode />
                            </IconButton>
-                           <IconButton size="small" color="info">
+                           <IconButton size="small" color="info" onClick={() => handleEditTable(table)} title="Editar Mesa">
                               <Edit />
                            </IconButton>
                            {table.status === "OCUPADA" && (
-                              <IconButton size="small" color="success">
+                              <>
+                                 <IconButton size="small" color="secondary" onClick={() => handleViewOrders(table)} title="Ver Pedidos">
+                                    <Visibility />
+                                 </IconButton>
+                                 <IconButton size="small" color="success" onClick={() => handleStatusChange(table, "LIVRE")} title="Marcar como Livre">
+                                    <Restaurant />
+                                 </IconButton>
+                              </>
+                           )}
+                           {table.status === "LIVRE" && (
+                              <IconButton size="small" color="warning" onClick={() => handleStatusChange(table, "OCUPADA")} title="Marcar como Ocupada">
                                  <Restaurant />
                               </IconButton>
                            )}
                            {table.status === "MANUTENCAO" && (
-                              <IconButton size="small" color="warning">
+                              <IconButton size="small" color="warning" onClick={() => handleStatusChange(table, "LIVRE")} title="Finalizar Manutenção">
                                  <CleaningServices />
                               </IconButton>
                            )}
@@ -174,6 +322,20 @@ const TablesPage: React.FC = () => {
                </Grid>
             ))}
          </Grid>
+
+         <TableFormModal
+            open={editModalOpen}
+            table={selectedTable}
+            existingTables={tables}
+            onClose={() => setEditModalOpen(false)}
+            onSubmit={handleTableSubmit}
+         />
+
+         <QRCodeModal
+            open={qrModalOpen}
+            table={selectedTable}
+            onClose={() => setQrModalOpen(false)}
+         />
       </Box>
    );
 };

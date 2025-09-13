@@ -45,7 +45,6 @@ function getApiBaseUrl(): string {
 
 const API_BASE_URL = getApiBaseUrl();
 
-
 const api = axios.create({
    baseURL: API_BASE_URL,
    headers: {
@@ -97,7 +96,6 @@ export const authAPI = {
    },
 };
 
-
 // Menu API
 export const menuAPI = {
    getMenuItems: async (options?: { includeAll?: boolean }): Promise<MenuItem[]> => {
@@ -132,9 +130,11 @@ export const menuAPI = {
    },
 
    // Get menu items filtered by type for order selection
-   getMenuItemsByType: async (type: 'isBase' | 'isProteina' | 'isAcompanhamento' | 'isBebida' | 'isPratoDoDia'): Promise<MenuItem[]> => {
+   getMenuItemsByType: async (
+      type: "isBase" | "isProteina" | "isAcompanhamento" | "isBebida" | "isPratoDoDia"
+   ): Promise<MenuItem[]> => {
       const response: AxiosResponse<MenuItem[]> = await api.get("/menu");
-      return response.data.filter(item => item[type] && item.available);
+      return response.data.filter((item) => item[type] && item.available);
    },
 };
 
@@ -173,8 +173,8 @@ export const tablesAPI = {
       return response.data;
    },
 
-   updateTableStatus: async (id: string, status: Table["status"]): Promise<Table> => {
-      const response: AxiosResponse<Table> = await api.put(`/tables/${id}/status`, { status });
+   updateTableStatus: async (id: string, status: Table["status"], capacity: number): Promise<Table> => {
+      const response: AxiosResponse<Table> = await api.put(`/tables/${id}/status`, { status, capacity });
       return response.data;
    },
 
@@ -280,6 +280,11 @@ export const usersAPI = {
    getUsers: async (): Promise<User[]> => {
       const response: AxiosResponse<User[]> = await api.get("/users");
       return response.data;
+   },
+
+   createUser: async (userData: Omit<User, "id" | "createdAt"> & { password: string }): Promise<User> => {
+      const response: AxiosResponse<{ user: User }> = await api.post("/auth/register", userData);
+      return response.data.user;
    },
 
    updateUser: async (id: string, user: Partial<User>): Promise<User> => {
